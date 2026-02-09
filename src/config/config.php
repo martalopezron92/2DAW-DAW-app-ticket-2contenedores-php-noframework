@@ -51,6 +51,9 @@ define('BASE_PATH', dirname(__DIR__));
 define('PUBLIC_PATH', BASE_PATH . '/public');
 
 // URL base (ajustar según el entorno)
-$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+// En despliegues con proxy (p. ej., Fly.io), el protocolo real llega en X-Forwarded-Proto.
+$forwardedProto = $_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '';
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || $forwardedProto === 'https';
+$protocol = $isHttps ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'] ?? 'localhost:8080';
 define('BASE_URL', $protocol . '://' . $host);
