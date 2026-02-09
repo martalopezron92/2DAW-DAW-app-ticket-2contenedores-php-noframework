@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Contenedor de la aplicación PHP con Apache
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketing-app
+    ports:
+      - "${APP_PORT:-8080}:80"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+    volumes:
+      # Montamos el código fuente para desarrollo (hot-reload)
+      - ./src:/var/www/html
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - ticketing-network
+
+  # Contenedor de la base de datos MariaDB
+  db:
+    image: mariadb:11.2
+    container_name: ticketing-db
+    env_file:
+      - .env
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - TZ=Europe/Madrid
+    command: --default-time-zone='+01:00'
+    volumes:
+      # Persistencia de datos
+      - db_data:/var/lib/mysql
+      # Script de inicialización
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    networks:
+      - ticketing-network
+
+# Volumen para persistir los datos de la base de datos
+volumes:
+  db_data:
+    driver: local
+
+# Red interna para comunicación entre contenedores
+networks:
+  ticketing-network:
+    driver: bridge
