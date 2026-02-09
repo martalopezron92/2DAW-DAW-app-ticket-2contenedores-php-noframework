@@ -35,7 +35,7 @@ RUN echo '<Directory /var/www/html/public>\n\
 WORKDIR /var/www/html
 
 # Copiar código fuente (opcional en desarrollo, ya que usamos volumen)
-# COPY ./src /var/www/html
+COPY ./src /var/www/html
 
 # Establecer permisos
 RUN chown -R www-data:www-data /var/www/html
